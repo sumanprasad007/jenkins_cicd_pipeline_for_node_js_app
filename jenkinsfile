@@ -1,0 +1,29 @@
+node {
+    def app
+
+    stage('Clone repository') {
+    /* Let's make sure we have the repository cloned to our workspace & update as repo*/
+        checkout scm
+    }
+
+    stage('Build image') {
+        /* This builds the actual image; synonymous to
+         * docker build on the command line */
+
+        app = docker.build("iamsumanprasad007/app") //dockerhub username/repo
+    }
+
+    stage('Test'){ // adding the test functionality to our Pipeline
+        app.inside {
+                sh 'npm test'  // sh helps to run the shell command inside the Jenkinsfile
+        }
+    }
+
+    stage('Push image') {
+        /* Finally, we'll push the image into Docker Hub */
+        // It provides dockerhub url and it's credentials that we have provided in jenkins
+        docker.withRegistry('https://registry.hub.docker.com', 'docker-hub-credentials') {
+            app.push("latest")
+        }
+    }
+}
